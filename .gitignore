@@ -11,6 +11,7 @@ logs/
 # Uploads and generated files
 server/uploads/*
 !server/uploads/.gitkeep
+server/src/generated/
 
 # OS/editor
 .DS_Store
@@ -18,3 +19,8 @@ Thumbs.db
 .vscode/
 .idea/
 
+#graphifyy
+.graphify
+graphify-out
+*.graph.json
+.graphifyignore

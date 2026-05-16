@@ -1,6 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "../../tailwind.config.js";
 
 body {
   margin: 0;
@@ -8,4 +7,3 @@ body {
   background: #f7f8fa;
   color: #171717;
 }
-
