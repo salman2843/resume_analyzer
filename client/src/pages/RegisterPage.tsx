@@ -12,12 +12,45 @@ function getErrorMessage(error: unknown) {
   return "Unable to create account";
 }
 
+type RegisterErrors = {
+  name?: string;
+  email?: string;
+  password?: string;
+};
+
+function validateRegister(name: string, email: string, password: string) {
+  const errors: RegisterErrors = {};
+  const trimmedName = name.trim();
+  const trimmedEmail = email.trim();
+
+  if (!trimmedName) {
+    errors.name = "Name is required";
+  } else if (trimmedName.length < 2) {
+    errors.name = "Name must be at least 2 characters";
+  }
+
+  if (!trimmedEmail) {
+    errors.email = "Email is required";
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+    errors.email = "Enter a valid email";
+  }
+
+  if (!password) {
+    errors.password = "Password is required";
+  } else if (password.length < 8) {
+    errors.password = "Password must be at least 8 characters";
+  }
+
+  return errors;
+}
+
 export default function RegisterPage() {
   const { registerUser, user } = useAuth();
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<RegisterErrors>({});
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -28,10 +61,17 @@ export default function RegisterPage() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
+    const validationErrors = validateRegister(name, email, password);
+    setFieldErrors(validationErrors);
+
+    if (Object.keys(validationErrors).length > 0) {
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      await registerUser({ name, email, password });
+      await registerUser({ name: name.trim(), email: email.trim(), password });
       navigate("/dashboard", { replace: true });
     } catch (err) {
       setError(getErrorMessage(err));
@@ -56,10 +96,20 @@ export default function RegisterPage() {
             id="name"
             type="text"
             value={name}
-            onChange={(event) => setName(event.target.value)}
+            onChange={(event) => {
+              setName(event.target.value);
+              setFieldErrors((current) => ({ ...current, name: undefined }));
+            }}
+            aria-invalid={Boolean(fieldErrors.name)}
+            aria-describedby={fieldErrors.name ? "name-error" : undefined}
             required
           />
         </div>
+        {fieldErrors.name ? (
+          <p className="mt-2 text-sm font-medium text-red-700" id="name-error">
+            {fieldErrors.name}
+          </p>
+        ) : null}
 
         <label className="mt-4 block text-sm font-medium text-neutral-700" htmlFor="email">
           Email
@@ -71,10 +121,20 @@ export default function RegisterPage() {
             id="email"
             type="email"
             value={email}
-            onChange={(event) => setEmail(event.target.value)}
+            onChange={(event) => {
+              setEmail(event.target.value);
+              setFieldErrors((current) => ({ ...current, email: undefined }));
+            }}
+            aria-invalid={Boolean(fieldErrors.email)}
+            aria-describedby={fieldErrors.email ? "email-error" : undefined}
             required
           />
         </div>
+        {fieldErrors.email ? (
+          <p className="mt-2 text-sm font-medium text-red-700" id="email-error">
+            {fieldErrors.email}
+          </p>
+        ) : null}
 
         <label className="mt-4 block text-sm font-medium text-neutral-700" htmlFor="password">
           Password
@@ -87,10 +147,20 @@ export default function RegisterPage() {
             type="password"
             minLength={8}
             value={password}
-            onChange={(event) => setPassword(event.target.value)}
+            onChange={(event) => {
+              setPassword(event.target.value);
+              setFieldErrors((current) => ({ ...current, password: undefined }));
+            }}
+            aria-invalid={Boolean(fieldErrors.password)}
+            aria-describedby={fieldErrors.password ? "password-error" : undefined}
             required
           />
         </div>
+        {fieldErrors.password ? (
+          <p className="mt-2 text-sm font-medium text-red-700" id="password-error">
+            {fieldErrors.password}
+          </p>
+        ) : null}
 
         {error ? <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{error}</p> : null}
 

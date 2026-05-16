@@ -18,6 +18,28 @@ function getErrorMessage(error: unknown) {
   return "Unable to sign in";
 }
 
+type LoginErrors = {
+  email?: string;
+  password?: string;
+};
+
+function validateLogin(email: string, password: string) {
+  const errors: LoginErrors = {};
+  const trimmedEmail = email.trim();
+
+  if (!trimmedEmail) {
+    errors.email = "Email is required";
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+    errors.email = "Enter a valid email";
+  }
+
+  if (!password) {
+    errors.password = "Password is required";
+  }
+
+  return errors;
+}
+
 export default function LoginPage() {
   const { loginUser, user } = useAuth();
   const navigate = useNavigate();
@@ -25,6 +47,7 @@ export default function LoginPage() {
   const from = (location.state as LocationState | null)?.from?.pathname || "/dashboard";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<LoginErrors>({});
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -35,10 +58,17 @@ export default function LoginPage() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
+    const validationErrors = validateLogin(email, password);
+    setFieldErrors(validationErrors);
+
+    if (Object.keys(validationErrors).length > 0) {
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      await loginUser({ email, password });
+      await loginUser({ email: email.trim(), password });
       navigate(from, { replace: true });
     } catch (err) {
       setError(getErrorMessage(err));
@@ -63,10 +93,20 @@ export default function LoginPage() {
             id="email"
             type="email"
             value={email}
-            onChange={(event) => setEmail(event.target.value)}
+            onChange={(event) => {
+              setEmail(event.target.value);
+              setFieldErrors((current) => ({ ...current, email: undefined }));
+            }}
+            aria-invalid={Boolean(fieldErrors.email)}
+            aria-describedby={fieldErrors.email ? "email-error" : undefined}
             required
           />
         </div>
+        {fieldErrors.email ? (
+          <p className="mt-2 text-sm font-medium text-red-700" id="email-error">
+            {fieldErrors.email}
+          </p>
+        ) : null}
 
         <label className="mt-4 block text-sm font-medium text-neutral-700" htmlFor="password">
           Password
@@ -78,10 +118,20 @@ export default function LoginPage() {
             id="password"
             type="password"
             value={password}
-            onChange={(event) => setPassword(event.target.value)}
+            onChange={(event) => {
+              setPassword(event.target.value);
+              setFieldErrors((current) => ({ ...current, password: undefined }));
+            }}
+            aria-invalid={Boolean(fieldErrors.password)}
+            aria-describedby={fieldErrors.password ? "password-error" : undefined}
             required
           />
         </div>
+        {fieldErrors.password ? (
+          <p className="mt-2 text-sm font-medium text-red-700" id="password-error">
+            {fieldErrors.password}
+          </p>
+        ) : null}
 
         {error ? <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{error}</p> : null}
 
