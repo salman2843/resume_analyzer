@@ -22,6 +22,7 @@ model Resume {
   id            String     @id @default(cuid())
   userId        String
   fileUrl       String
+  originalName  String
   extractedText String?
   atsScore      Int?
   createdAt     DateTime   @default(now())

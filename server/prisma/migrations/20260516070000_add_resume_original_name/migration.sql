@@ -1,0 +1,3 @@
+ALTER TABLE "Resume" ADD COLUMN "originalName" TEXT NOT NULL DEFAULT 'Resume PDF';
+
+ALTER TABLE "Resume" ALTER COLUMN "originalName" DROP DEFAULT;
