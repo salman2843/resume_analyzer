@@ -24,3 +24,6 @@ Thumbs.db
 graphify-out
 *.graph.json
 .graphifyignore
+
+#temp files
+codebase.txt
