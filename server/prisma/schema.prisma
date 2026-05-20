@@ -28,6 +28,7 @@ model Resume {
   createdAt     DateTime   @default(now())
   user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   analyses      Analysis[]
+  interviews    InterviewSession[]
 }
 
 model Analysis {
@@ -44,8 +45,10 @@ model Analysis {
 model InterviewSession {
   id        String   @id @default(cuid())
   userId    String
+  resumeId  String?
   questions Json?
   feedback  Json?
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resume    Resume?  @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 }

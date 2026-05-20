@@ -5,8 +5,10 @@ import { Router } from "express";
 import multer from "multer";
 import {
   analyzeResume,
+  createInterviewQuestions,
   deleteResume,
   downloadResume,
+  listInterviewSessions,
   listResumes,
   uploadResume
 } from "../controllers/resume.controller.js";
@@ -47,6 +49,8 @@ router.use(requireAuth);
 router.get("/", listResumes);
 router.post("/", upload.single("resume"), uploadResume);
 router.post("/:id/analyze", analyzeResume);
+router.get("/:id/interview-sessions", listInterviewSessions);
+router.post("/:id/interview-questions", createInterviewQuestions);
 router.get("/:id/download", downloadResume);
 router.delete("/:id", deleteResume);
 

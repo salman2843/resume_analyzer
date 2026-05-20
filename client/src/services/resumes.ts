@@ -19,6 +19,23 @@ export type Resume = {
   latestAnalysis: ResumeAnalysis | null;
 };
 
+export type InterviewQuestion = {
+  question: string;
+  sampleAnswer: string;
+};
+
+export type InterviewSessionQuestions = {
+  jobRole: string;
+  questions: InterviewQuestion[];
+};
+
+export type InterviewSession = {
+  id: string;
+  questions: InterviewSessionQuestions;
+  feedback: unknown;
+  createdAt: string;
+};
+
 export async function getResumes() {
   const response = await api.get<{ resumes: Resume[] }>("/resumes");
   return response.data.resumes;
@@ -59,6 +76,16 @@ export async function deleteResume(id: string) {
 export async function analyzeResume(id: string) {
   const response = await api.post<{ resume: Resume; analysis: ResumeAnalysis }>(`/resumes/${id}/analyze`);
   return response.data;
+}
+
+export async function getInterviewSessions(id: string) {
+  const response = await api.get<{ sessions: InterviewSession[] }>(`/resumes/${id}/interview-sessions`);
+  return response.data.sessions;
+}
+
+export async function generateInterviewQuestions(id: string) {
+  const response = await api.post<{ session: InterviewSession }>(`/resumes/${id}/interview-questions`);
+  return response.data.session;
 }
 
 export function getResumeFileUrl(fileUrl: string) {

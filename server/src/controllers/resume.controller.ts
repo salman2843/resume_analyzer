@@ -4,7 +4,7 @@ import { PDFParse } from "pdf-parse";
 import type { Request, Response } from "express";
 import { prisma } from "../config/prisma.js";
 import type { AuthenticatedRequest } from "../middleware/auth.js";
-import { analyzeResumeText } from "../services/gemini.js";
+import { analyzeResumeText, generateInterviewQuestions } from "../services/gemini.js";
 import { HttpError } from "../utils/httpError.js";
 
 function formatAnalysis(analysis: {
@@ -49,6 +49,20 @@ function formatResume(resume: {
     atsScore: resume.atsScore,
     createdAt: resume.createdAt,
     latestAnalysis: resume.analyses?.[0] ? formatAnalysis(resume.analyses[0]) : null
+  };
+}
+
+function formatInterviewSession(session: {
+  id: string;
+  questions: unknown;
+  feedback: unknown;
+  createdAt: Date;
+}) {
+  return {
+    id: session.id,
+    questions: session.questions,
+    feedback: session.feedback,
+    createdAt: session.createdAt
   };
 }
 
@@ -170,6 +184,61 @@ export async function analyzeResume(req: Request, res: Response) {
     resume: formatResume(updatedResume),
     analysis: formatAnalysis(analysis)
   });
+}
+
+export async function listInterviewSessions(req: Request, res: Response) {
+  const authReq = req as AuthenticatedRequest;
+  const resumeId = getResumeId(req);
+  const resume = await prisma.resume.findFirst({
+    where: {
+      id: resumeId,
+      userId: authReq.user.id
+    }
+  });
+
+  if (!resume) {
+    throw new HttpError(404, "Resume not found");
+  }
+
+  const sessions = await prisma.interviewSession.findMany({
+    where: {
+      userId: authReq.user.id,
+      resumeId: resume.id
+    },
+    orderBy: { createdAt: "desc" }
+  });
+
+  res.status(200).json({ sessions: sessions.map(formatInterviewSession) });
+}
+
+export async function createInterviewQuestions(req: Request, res: Response) {
+  const authReq = req as AuthenticatedRequest;
+  const resumeId = getResumeId(req);
+  const resume = await prisma.resume.findFirst({
+    where: {
+      id: resumeId,
+      userId: authReq.user.id
+    }
+  });
+
+  if (!resume) {
+    throw new HttpError(404, "Resume not found");
+  }
+
+  if (!resume.extractedText) {
+    throw new HttpError(400, "This resume has no extracted text for interview questions");
+  }
+
+  const result = await generateInterviewQuestions(resume.extractedText);
+  const session = await prisma.interviewSession.create({
+    data: {
+      userId: authReq.user.id,
+      resumeId: resume.id,
+      questions: result
+    }
+  });
+
+  res.status(201).json({ session: formatInterviewSession(session) });
 }
 
 export async function downloadResume(req: Request, res: Response) {
