@@ -91,6 +91,7 @@ JWT_SECRET=replace-with-a-long-random-secret
 CLIENT_URL=http://localhost:5173
 OPENAI_API_KEY=
 GEMINI_API_KEY=
+GEMINI_MODEL=gemini-2.5-flash-lite
 ```
 
 ## Install Dependencies
@@ -183,6 +184,9 @@ Resume routes:
 ```txt
 GET  /api/resumes
 POST /api/resumes
+POST /api/resumes/:id/analyze
+GET  /api/resumes/:id/download
+DELETE /api/resumes/:id
 ```
 
 `POST /api/resumes` expects multipart form data with the file field named:

@@ -4,7 +4,26 @@ import { PDFParse } from "pdf-parse";
 import type { Request, Response } from "express";
 import { prisma } from "../config/prisma.js";
 import type { AuthenticatedRequest } from "../middleware/auth.js";
+import { analyzeResumeText } from "../services/gemini.js";
 import { HttpError } from "../utils/httpError.js";
+
+function formatAnalysis(analysis: {
+  id: string;
+  strengths: unknown;
+  weaknesses: unknown;
+  suggestions: unknown;
+  jobMatchScore: number | null;
+  createdAt: Date;
+}) {
+  return {
+    id: analysis.id,
+    strengths: analysis.strengths,
+    weaknesses: analysis.weaknesses,
+    suggestions: analysis.suggestions,
+    jobMatchScore: analysis.jobMatchScore,
+    createdAt: analysis.createdAt
+  };
+}
 
 function formatResume(resume: {
   id: string;
@@ -13,6 +32,14 @@ function formatResume(resume: {
   extractedText: string | null;
   atsScore: number | null;
   createdAt: Date;
+  analyses?: Array<{
+    id: string;
+    strengths: unknown;
+    weaknesses: unknown;
+    suggestions: unknown;
+    jobMatchScore: number | null;
+    createdAt: Date;
+  }>;
 }) {
   return {
     id: resume.id,
@@ -20,7 +47,8 @@ function formatResume(resume: {
     originalName: resume.originalName,
     extractedText: resume.extractedText,
     atsScore: resume.atsScore,
-    createdAt: resume.createdAt
+    createdAt: resume.createdAt,
+    latestAnalysis: resume.analyses?.[0] ? formatAnalysis(resume.analyses[0]) : null
   };
 }
 
@@ -50,6 +78,12 @@ export async function listResumes(req: Request, res: Response) {
   const authReq = req as AuthenticatedRequest;
   const resumes = await prisma.resume.findMany({
     where: { userId: authReq.user.id },
+    include: {
+      analyses: {
+        orderBy: { createdAt: "desc" },
+        take: 1
+      }
+    },
     orderBy: { createdAt: "desc" }
   });
 
@@ -90,6 +124,52 @@ export async function uploadResume(req: Request, res: Response) {
 
     throw new HttpError(400, "Unable to read this PDF. Try another resume file.");
   }
+}
+
+export async function analyzeResume(req: Request, res: Response) {
+  const authReq = req as AuthenticatedRequest;
+  const resumeId = getResumeId(req);
+  const resume = await prisma.resume.findFirst({
+    where: {
+      id: resumeId,
+      userId: authReq.user.id
+    }
+  });
+
+  if (!resume) {
+    throw new HttpError(404, "Resume not found");
+  }
+
+  if (!resume.extractedText) {
+    throw new HttpError(400, "This resume has no extracted text to analyze");
+  }
+
+  const result = await analyzeResumeText(resume.extractedText);
+  const analysis = await prisma.analysis.create({
+    data: {
+      resumeId: resume.id,
+      strengths: result.strengths,
+      weaknesses: result.weaknesses,
+      suggestions: result.suggestions,
+      jobMatchScore: result.jobMatchScore ?? null
+    }
+  });
+
+  const updatedResume = await prisma.resume.update({
+    where: { id: resume.id },
+    data: { atsScore: result.atsScore },
+    include: {
+      analyses: {
+        orderBy: { createdAt: "desc" },
+        take: 1
+      }
+    }
+  });
+
+  res.status(201).json({
+    resume: formatResume(updatedResume),
+    analysis: formatAnalysis(analysis)
+  });
 }
 
 export async function downloadResume(req: Request, res: Response) {

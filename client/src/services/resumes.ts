@@ -1,5 +1,14 @@
 import api from "./api";
 
+export type ResumeAnalysis = {
+  id: string;
+  strengths: string[];
+  weaknesses: string[];
+  suggestions: string[];
+  jobMatchScore: number | null;
+  createdAt: string;
+};
+
 export type Resume = {
   id: string;
   fileUrl: string;
@@ -7,6 +16,7 @@ export type Resume = {
   extractedText: string | null;
   atsScore: number | null;
   createdAt: string;
+  latestAnalysis: ResumeAnalysis | null;
 };
 
 export async function getResumes() {
@@ -44,6 +54,11 @@ export async function downloadResume(resume: Resume) {
 
 export async function deleteResume(id: string) {
   await api.delete(`/resumes/${id}`);
+}
+
+export async function analyzeResume(id: string) {
+  const response = await api.post<{ resume: Resume; analysis: ResumeAnalysis }>(`/resumes/${id}/analyze`);
+  return response.data;
 }
 
 export function getResumeFileUrl(fileUrl: string) {
