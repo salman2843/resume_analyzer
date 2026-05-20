@@ -1,4 +1,5 @@
 import fs from "node:fs/promises";
+import path from "node:path";
 import { PDFParse } from "pdf-parse";
 import type { Request, Response } from "express";
 import { prisma } from "../config/prisma.js";
@@ -29,6 +30,20 @@ async function removeUploadedFile(file?: Express.Multer.File) {
   }
 
   await fs.unlink(file.path).catch(() => undefined);
+}
+
+function getStoredResumePath(fileUrl: string) {
+  return path.join(process.cwd(), fileUrl.replace(/^\/+/, ""));
+}
+
+function getResumeId(req: Request) {
+  const id = req.params.id;
+
+  if (typeof id !== "string") {
+    throw new HttpError(400, "Invalid resume id");
+  }
+
+  return id;
 }
 
 export async function listResumes(req: Request, res: Response) {
@@ -75,4 +90,41 @@ export async function uploadResume(req: Request, res: Response) {
 
     throw new HttpError(400, "Unable to read this PDF. Try another resume file.");
   }
+}
+
+export async function downloadResume(req: Request, res: Response) {
+  const authReq = req as AuthenticatedRequest;
+  const resumeId = getResumeId(req);
+  const resume = await prisma.resume.findFirst({
+    where: {
+      id: resumeId,
+      userId: authReq.user.id
+    }
+  });
+
+  if (!resume) {
+    throw new HttpError(404, "Resume not found");
+  }
+
+  res.download(getStoredResumePath(resume.fileUrl), resume.originalName);
+}
+
+export async function deleteResume(req: Request, res: Response) {
+  const authReq = req as AuthenticatedRequest;
+  const resumeId = getResumeId(req);
+  const resume = await prisma.resume.findFirst({
+    where: {
+      id: resumeId,
+      userId: authReq.user.id
+    }
+  });
+
+  if (!resume) {
+    throw new HttpError(404, "Resume not found");
+  }
+
+  await prisma.resume.delete({ where: { id: resume.id } });
+  await fs.unlink(getStoredResumePath(resume.fileUrl)).catch(() => undefined);
+
+  res.status(204).send();
 }

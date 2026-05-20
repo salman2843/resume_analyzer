@@ -27,6 +27,25 @@ export async function uploadResume(file: File) {
   return response.data.resume;
 }
 
+export async function downloadResume(resume: Resume) {
+  const response = await api.get<Blob>(`/resumes/${resume.id}/download`, {
+    responseType: "blob"
+  });
+  const url = window.URL.createObjectURL(response.data);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = resume.originalName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+}
+
+export async function deleteResume(id: string) {
+  await api.delete(`/resumes/${id}`);
+}
+
 export function getResumeFileUrl(fileUrl: string) {
   const baseUrl = (api.defaults.baseURL || "").replace(/\/api\/?$/, "");
   return `${baseUrl}${fileUrl}`;

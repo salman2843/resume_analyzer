@@ -1,8 +1,8 @@
 import { AxiosError } from "axios";
-import { BarChart3, ExternalLink, FileText, FileUp, Loader2, Sparkles, Target } from "lucide-react";
+import { BarChart3, Download, ExternalLink, FileText, FileUp, Loader2, Sparkles, Target, Trash2 } from "lucide-react";
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { getResumeFileUrl, getResumes, uploadResume } from "../services/resumes";
+import { deleteResume, downloadResume, getResumeFileUrl, getResumes, uploadResume } from "../services/resumes";
 import type { Resume } from "../services/resumes";
 
 function getErrorMessage(error: unknown) {
@@ -32,6 +32,8 @@ export default function DashboardPage() {
   const [error, setError] = useState("");
   const [isLoadingResumes, setIsLoadingResumes] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const latestResume = resumes[0];
   const dashboardMetrics = useMemo(
@@ -79,6 +81,39 @@ export default function DashboardPage() {
       setError(getErrorMessage(err));
     } finally {
       setIsUploading(false);
+    }
+  }
+
+  async function handleDownload(resume: Resume) {
+    setError("");
+    setDownloadingId(resume.id);
+
+    try {
+      await downloadResume(resume);
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setDownloadingId(null);
+    }
+  }
+
+  async function handleDelete(resume: Resume) {
+    const shouldDelete = window.confirm(`Delete ${resume.originalName}?`);
+
+    if (!shouldDelete) {
+      return;
+    }
+
+    setError("");
+    setDeletingId(resume.id);
+
+    try {
+      await deleteResume(resume.id);
+      setResumes((current) => current.filter((item) => item.id !== resume.id));
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -147,7 +182,7 @@ export default function DashboardPage() {
             {resumes.map((resume) => (
               <article
                 key={resume.id}
-                className="grid gap-4 rounded-lg border border-neutral-200 bg-neutral-50/60 p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+                className="grid gap-4 rounded-lg border border-neutral-200 bg-neutral-50/60 p-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center"
               >
                 <div className="flex min-w-0 items-center gap-3">
                   <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-white text-emerald-700 shadow-sm ring-1 ring-neutral-200">
@@ -169,15 +204,35 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 </div>
-                <a
-                  className="inline-flex h-9 w-fit items-center justify-center gap-2 rounded-lg bg-white px-3 text-xs font-semibold text-neutral-700 shadow-sm ring-1 ring-neutral-200 hover:bg-neutral-100"
-                  href={getResumeFileUrl(resume.fileUrl)}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Open
-                  <ExternalLink size={14} />
-                </a>
+                <div className="flex flex-wrap gap-2">
+                  <a
+                    className="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-white px-3 text-xs font-semibold text-neutral-700 shadow-sm ring-1 ring-neutral-200 hover:bg-neutral-100"
+                    href={getResumeFileUrl(resume.fileUrl)}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Open
+                    <ExternalLink size={14} />
+                  </a>
+                  <button
+                    className="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-white px-3 text-xs font-semibold text-neutral-700 shadow-sm ring-1 ring-neutral-200 hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-60"
+                    type="button"
+                    onClick={() => handleDownload(resume)}
+                    disabled={downloadingId === resume.id}
+                  >
+                    {downloadingId === resume.id ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+                    Download
+                  </button>
+                  <button
+                    className="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-white px-3 text-xs font-semibold text-red-700 shadow-sm ring-1 ring-neutral-200 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+                    type="button"
+                    onClick={() => handleDelete(resume)}
+                    disabled={deletingId === resume.id}
+                  >
+                    {deletingId === resume.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                    Delete
+                  </button>
+                </div>
               </article>
             ))}
           </div>

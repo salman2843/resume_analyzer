@@ -3,7 +3,7 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { Router } from "express";
 import multer from "multer";
-import { listResumes, uploadResume } from "../controllers/resume.controller.js";
+import { deleteResume, downloadResume, listResumes, uploadResume } from "../controllers/resume.controller.js";
 import { requireAuth } from "../middleware/auth.js";
 import { HttpError } from "../utils/httpError.js";
 
@@ -40,5 +40,7 @@ const upload = multer({
 router.use(requireAuth);
 router.get("/", listResumes);
 router.post("/", upload.single("resume"), uploadResume);
+router.get("/:id/download", downloadResume);
+router.delete("/:id", deleteResume);
 
 export default router;
