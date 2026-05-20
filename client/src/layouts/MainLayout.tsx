@@ -1,6 +1,6 @@
-import { ChevronDown, FileText, LayoutDashboard, LogOut, UserRound, X } from "lucide-react";
+import { BarChart3, ChevronDown, FileText, LayoutDashboard, LogOut, MessageSquareText, SearchCheck, UserRound, X } from "lucide-react";
 import { useState } from "react";
-import { Link, Outlet, useNavigate } from "react-router-dom";
+import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function MainLayout() {
@@ -8,6 +8,12 @@ export default function MainLayout() {
   const navigate = useNavigate();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
+  const appLinks = [
+    { label: "Dashboard", to: "/dashboard", icon: LayoutDashboard },
+    { label: "Analysis", to: "/analysis", icon: BarChart3 },
+    { label: "Interview", to: "/interview-practice", icon: MessageSquareText },
+    { label: "Job Match", to: "/job-match", icon: SearchCheck }
+  ];
 
   function handleLogoutConfirm() {
     logoutUser();
@@ -28,54 +34,77 @@ export default function MainLayout() {
           </Link>
           <nav className="flex items-center gap-3 text-sm">
             {user ? (
-              <div className="relative">
-                <button
-                  className="inline-flex h-10 items-center gap-2 rounded-lg border border-neutral-200 bg-white px-3 font-medium text-neutral-700 hover:bg-neutral-50 hover:text-neutral-950"
-                  type="button"
-                  onClick={() => setIsProfileOpen((current) => !current)}
-                  aria-expanded={isProfileOpen}
-                  aria-haspopup="menu"
-                >
-                  <span className="flex size-7 items-center justify-center rounded-full bg-emerald-50 text-emerald-700">
-                    <UserRound size={15} />
-                  </span>
-                  <span className="hidden max-w-36 truncate sm:inline">{user.name}</span>
-                  <ChevronDown size={16} className={isProfileOpen ? "rotate-180 transition" : "transition"} />
-                </button>
-
-                {isProfileOpen ? (
-                  <div
-                    className="absolute right-0 z-20 mt-2 w-56 rounded-lg border border-neutral-200 bg-white py-2 shadow-lg"
-                    role="menu"
+              <>
+                <div className="hidden items-center gap-1 lg:flex">
+                  {appLinks.map((item) => (
+                    <NavLink
+                      key={item.to}
+                      className={({ isActive }) =>
+                        `inline-flex h-10 items-center gap-2 rounded-lg px-3 font-semibold ${
+                          isActive ? "bg-neutral-950 text-white" : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-950"
+                        }`
+                      }
+                      to={item.to}
+                    >
+                      <item.icon size={15} />
+                      {item.label}
+                    </NavLink>
+                  ))}
+                </div>
+                <div className="relative">
+                  <button
+                    className="inline-flex h-10 items-center gap-2 rounded-lg border border-neutral-200 bg-white px-3 font-medium text-neutral-700 hover:bg-neutral-50 hover:text-neutral-950"
+                    type="button"
+                    onClick={() => setIsProfileOpen((current) => !current)}
+                    aria-expanded={isProfileOpen}
+                    aria-haspopup="menu"
                   >
-                    <div className="border-b border-neutral-100 px-3 pb-2 pt-1">
-                      <p className="truncate text-sm font-semibold text-neutral-950">{user.name}</p>
-                      <p className="truncate text-xs text-neutral-500">{user.email}</p>
+                    <span className="flex size-7 items-center justify-center rounded-full bg-sky-50 text-sky-700">
+                      <UserRound size={15} />
+                    </span>
+                    <span className="hidden max-w-36 truncate sm:inline">{user.name}</span>
+                    <ChevronDown size={16} className={isProfileOpen ? "rotate-180 transition" : "transition"} />
+                  </button>
+
+                  {isProfileOpen ? (
+                    <div
+                      className="absolute right-0 z-20 mt-2 w-64 rounded-lg border border-neutral-200 bg-white py-2 shadow-lg"
+                      role="menu"
+                    >
+                      <div className="border-b border-neutral-100 px-3 pb-2 pt-1">
+                        <p className="truncate text-sm font-semibold text-neutral-950">{user.name}</p>
+                        <p className="truncate text-xs text-neutral-500">{user.email}</p>
+                      </div>
+                      <div className="mt-1 lg:hidden">
+                        {appLinks.map((item) => (
+                          <Link
+                            key={item.to}
+                            className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 hover:text-neutral-950"
+                            to={item.to}
+                            role="menuitem"
+                            onClick={() => setIsProfileOpen(false)}
+                          >
+                            <item.icon size={16} />
+                            {item.label}
+                          </Link>
+                        ))}
+                      </div>
+                      <button
+                        className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-red-700 hover:bg-red-50"
+                        type="button"
+                        role="menuitem"
+                        onClick={() => {
+                          setIsProfileOpen(false);
+                          setIsLogoutConfirmOpen(true);
+                        }}
+                      >
+                        <LogOut size={16} />
+                        Logout
+                      </button>
                     </div>
-                    <Link
-                      className="mt-1 flex items-center gap-2 px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 hover:text-neutral-950"
-                      to="/dashboard"
-                      role="menuitem"
-                      onClick={() => setIsProfileOpen(false)}
-                    >
-                      <LayoutDashboard size={16} />
-                      Dashboard
-                    </Link>
-                    <button
-                      className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-red-700 hover:bg-red-50"
-                      type="button"
-                      role="menuitem"
-                      onClick={() => {
-                        setIsProfileOpen(false);
-                        setIsLogoutConfirmOpen(true);
-                      }}
-                    >
-                      <LogOut size={16} />
-                      Logout
-                    </button>
-                  </div>
-                ) : null}
-              </div>
+                  ) : null}
+                </div>
+              </>
             ) : (
               <>
                 <Link className="font-medium text-neutral-700 hover:text-neutral-950" to="/login">
