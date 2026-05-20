@@ -221,10 +221,3 @@ Server build:
 npm run build:server
 ```
 
-## Next Planned Work
-
-- Add resume delete/download actions
-- Add analysis generation using extracted resume text
-- Store ATS score and suggestions in the `Analysis` table
-- Show analysis results on the dashboard
-- Add profile/account page links inside the profile menu
