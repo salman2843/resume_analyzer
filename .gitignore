@@ -27,3 +27,7 @@ graphify-out
 
 #temp files
 codebase.txt
+
+# api test
+postman/
+.postman/
