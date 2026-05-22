@@ -208,30 +208,6 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      <section className="mt-6">
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <h2 className="text-lg font-bold text-neutral-950">Modules</h2>
-          <Link className="text-sm font-semibold text-sky-700 hover:text-sky-800" to="/analysis">
-            Start analysis
-          </Link>
-        </div>
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {modules.map((module) => (
-            <Link
-              key={module.title}
-              className="group rounded-lg border border-neutral-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-md"
-              to={module.to}
-            >
-              <span className={`flex size-10 items-center justify-center rounded-lg text-white ${module.accent}`}>
-                <module.icon size={18} />
-              </span>
-              <h3 className="mt-4 text-base font-bold text-neutral-950">{module.title}</h3>
-              <p className="mt-2 text-sm leading-6 text-neutral-500">{module.description}</p>
-            </Link>
-          ))}
-        </div>
-      </section>
-
       <section className="mt-6 overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-sm">
         <div className="flex flex-col gap-3 border-b border-neutral-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -300,15 +276,7 @@ export default function DashboardPage() {
                       Results
                     </Link>
                   ) : null}
-                  <a
-                    className="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-white px-3 text-xs font-semibold text-neutral-700 shadow-sm ring-1 ring-neutral-200 hover:bg-neutral-100"
-                    href={getResumeFileUrl(resume.fileUrl)}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Open
-                    <ExternalLink size={14} />
-                  </a>
+                  
                   <button
                     className="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-white px-3 text-xs font-semibold text-neutral-700 shadow-sm ring-1 ring-neutral-200 hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-60"
                     type="button"
@@ -357,6 +325,31 @@ export default function DashboardPage() {
           </div>
         )}
       </section>
+
+      <section className="mt-6">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <h2 className="text-lg font-bold text-neutral-950">Modules</h2>
+          <Link className="text-sm font-semibold text-sky-700 hover:text-sky-800" to="/analysis">
+            Start analysis
+          </Link>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {modules.map((module) => (
+            <Link
+              key={module.title}
+              className="group rounded-lg border border-neutral-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-md"
+              to={module.to}
+            >
+              <span className={`flex size-10 items-center justify-center rounded-lg text-white ${module.accent}`}>
+                <module.icon size={18} />
+              </span>
+              <h3 className="mt-4 text-base font-bold text-neutral-950">{module.title}</h3>
+              <p className="mt-2 text-sm leading-6 text-neutral-500">{module.description}</p>
+            </Link>
+          ))}
+        </div>
+      </section>
+
     </section>
   );
 }
