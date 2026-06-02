@@ -7,6 +7,7 @@ import InterviewPracticePage from "./pages/InterviewPracticePage";
 import JobMatchPage from "./pages/JobMatchPage";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
+import NotFoundPage from "./pages/NotFoundPage";
 import RegisterPage from "./pages/RegisterPage";
 import ResultsPage from "./pages/ResultsPage";
 
@@ -27,6 +28,7 @@ export default function App() {
           <Route path="/interview-practice/:resumeId" element={<InterviewPracticePage />} />
           <Route path="/job-match" element={<JobMatchPage />} />
         </Route>
+        <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
   );

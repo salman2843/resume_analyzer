@@ -1,4 +1,5 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
+import LoadingPage from "./LoadingPage";
 import { useAuth } from "../context/AuthContext";
 
 export default function ProtectedRoute() {
@@ -6,11 +7,7 @@ export default function ProtectedRoute() {
   const location = useLocation();
 
   if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center text-sm font-medium text-neutral-500">
-        Loading workspace...
-      </div>
-    );
+    return <LoadingPage />;
   }
 
   if (!user) {

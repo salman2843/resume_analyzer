@@ -5,7 +5,6 @@ import {
   CheckCircle2,
   FileSearch,
   FileText,
-  Loader2,
   MessageSquareText,
   SearchCheck,
   Sparkles,
@@ -13,6 +12,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import LoadingPage from "../components/LoadingPage";
 import { useAuth } from "../context/AuthContext";
 import { getResumes } from "../services/resumes";
 import type { Resume } from "../services/resumes";
@@ -22,14 +22,7 @@ export default function LandingPage() {
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
-    return (
-      <section className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-6xl items-center justify-center px-6">
-        <div className="inline-flex items-center gap-2 rounded-xl border border-[#e5e7eb] bg-white px-5 py-4 text-sm font-medium text-neutral-500 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
-          <Loader2 size={16} className="animate-spin" />
-          Loading workspace...
-        </div>
-      </section>
-    );
+    return <LoadingPage />;
   }
 
   return user ? <AuthenticatedHome /> : <PublicLanding />;
@@ -177,7 +170,7 @@ function AuthenticatedHome() {
 
       {isLoadingResumes ? (
         <div className="mt-5 flex items-center justify-center gap-2 rounded-xl border border-[#e5e7eb] bg-white px-5 py-12 text-sm font-medium text-neutral-500 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
-          <Loader2 size={16} className="animate-spin" />
+          <span className="size-4 animate-spin rounded-full border-2 border-neutral-200 border-t-[#2563eb]" />
           Loading latest resume...
         </div>
       ) : latestAnalyzed ? (
