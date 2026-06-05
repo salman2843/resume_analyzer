@@ -1,5 +1,5 @@
 import { BarChart3, ChevronDown, FileText, LayoutDashboard, LogOut, MessageSquareText, SearchCheck, UserRound, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
@@ -8,6 +8,7 @@ export default function MainLayout() {
   const navigate = useNavigate();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
   const appLinks = [
     { label: "Dashboard", to: "/dashboard", icon: LayoutDashboard },
     { label: "Analysis", to: "/analysis", icon: BarChart3 },
@@ -21,6 +22,26 @@ export default function MainLayout() {
     setIsProfileOpen(false);
     navigate("/");
   }
+
+  useEffect(() => {
+    if (!isProfileOpen) {
+      return;
+    }
+
+    function handlePointerDown(event: MouseEvent | TouchEvent) {
+      if (!profileMenuRef.current?.contains(event.target as Node)) {
+        setIsProfileOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("touchstart", handlePointerDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("touchstart", handlePointerDown);
+    };
+  }, [isProfileOpen]);
 
   return (
     <main className="min-h-screen bg-[#f7f8fa]">
@@ -51,7 +72,7 @@ export default function MainLayout() {
                     </NavLink>
                   ))}
                 </div>
-                <div className="relative">
+                <div className="relative" ref={profileMenuRef}>
                   <button
                     className="inline-flex h-10 items-center gap-2 rounded-lg border border-neutral-200 bg-white px-3 font-medium text-neutral-700 hover:bg-neutral-50 hover:text-neutral-950"
                     type="button"
